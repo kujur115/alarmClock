@@ -1,9 +1,17 @@
+// const alarmTime=[];
+let alarms=[];
 const selectMenu = document.querySelectorAll("select");
 const currTime = document.querySelector("h1");
 const setAlarmBtm =document.querySelector("button");
 const content= document.querySelector('.content');
+const alarmList = document.getElementById('list');
+const alarmCounter= document.getElementById('alarms-counter');
+const trash=document.querySelectorAll('.trash i');
 
-let alarmTime,isAlarmSet=false,
+
+
+let ringer=true;
+let isAlarmSet=false,
 ring =new Audio("./assets/Alarm.mp3");
 
 for(let i=12;i>0;i--){
@@ -41,10 +49,15 @@ setInterval(()=>{
     s= s<10 ? "0"+s : s;
 
     currTime.innerText =`${h}:${m}:${s} ${ampm}`;
-    if(alarmTime== `${h}:${m} ${ampm}` ){
-        ring.play();
-        ring.loop=true;
-        // console.log("ringing")
+    for(let i=0;i<alarms.length;i++){
+        if(alarms[i].text== `${h}:${m} ${ampm}` && ringer){
+            ring.play();
+            ring.loop=true;
+            content.classList.add("disabled");
+            setAlarmBtm.innerText="Clear Alarm";
+            isAlarmSet=true;
+            // console.log("ringing")
+        }
     }
 
 },1000);
@@ -52,7 +65,14 @@ setInterval(()=>{
 
 setAlarmBtm.addEventListener('click', ()=>{
     if(isAlarmSet){
-        alarmTime="";
+        // alarmTime="";
+        let date =new Date();
+        ringer=false;
+        let s=(60 - date.getSeconds())*1000;
+        console.log(s);
+        setInterval(()=>{
+            ringer= true;
+        },s);
         ring.pause();
         content.classList.remove("disabled");
         setAlarmBtm.innerText="Set Alarm";
@@ -66,8 +86,66 @@ setAlarmBtm.addEventListener('click', ()=>{
     if(time.includes("Hour") || time.includes("Minute") || time.includes("AM/PM")){
         return alert("Please,select a valid time to set Alarm!");
     }
-    alarmTime =time;
-    content.classList.add("disabled");
-    setAlarmBtm.innerText="Clear Alarm";
-    isAlarmSet=true;
+    const alarm={
+        text:time,
+        id:Date.now().toString(),
+        done:false
+        
+    }
+    // alarmTime.push(alarm);
+    addAlarm(alarm);
+   
 });
+function addAlarm(alarm){
+    console.log(alarm);
+    alarms.push(alarm);
+    renderList();
+}
+
+function addAlarmToDOM(alarm){
+    const li=document.createElement('li');
+    li.innerHTML=`
+            <div>
+                <h4>Alarm</h4>
+                <p>${alarm.text}</p>
+            </div>
+            <div class="trash">
+            <i class="fa-solid fa-trash" data-id="${alarm.id}"></i></div>
+    `;
+ alarmList.append(li);
+}
+
+function renderList() {
+    alarmList.innerHTML='';
+
+
+    for(let i=0;i<alarms.length;i++){
+        console.log(alarms[i],'renderlist');
+        addAlarmToDOM(alarms[i]);
+    }
+    alarmCounter.innerHTML=alarms.length;
+}
+
+// for(let i=0;i<trash.length;i++){
+//     trash[i].style.color='red';
+    document.addEventListener('click',(e)=>{
+        const target= e.target;
+        console.log(target);
+        if(target.className == 'fa-solid fa-trash' ){
+        const alarmId= target.dataset.id;
+        console.log(`alarmId:${alarmId}`);
+        deleteAlarm(alarmId);
+        }
+    });
+// }
+
+function deleteAlarm(alarmId){
+    console.log(alarmId);
+    const newAlarms = alarms.filter((alarm)=>{
+        // console.log(alarm.id!==alarmId);
+        
+        return alarm.id!==alarmId;
+    });
+    alarms=newAlarms;
+    renderList();
+}
