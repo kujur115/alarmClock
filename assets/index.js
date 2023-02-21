@@ -141,7 +141,8 @@ document.addEventListener('click',(e)=>{
     }else if(target.className == 'button'){
 
         if(isAlarmSet){
-            disableAlarm();   
+            disableAlarm(); 
+            return;  
         }
         setAlarm();
     }
